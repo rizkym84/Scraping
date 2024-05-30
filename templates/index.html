@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraping Search Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .search-container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+        .search-container input[type="text"], .search-container input[type="number"] {
+            width: calc(100% - 2rem);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .search-container input[type="submit"] {
+            padding: 1rem 2rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+            transition: background-color 0.3s;
+        }
+        .search-container input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .progress-container {
+            display: none;
+            margin-top: 1rem;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 24px;
+            width: 0;
+            background-color: #007BFF;
+            border-radius: 4px;
+            text-align: center;
+            color: white;
+            line-height: 24px;
+            transition: width 0.4s;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #777;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scraping Search Engine</h1>
+    <div class="search-container">
+        <form id="search-form" action="/search" method="post">
+            <input type="text" id="query" name="query" placeholder="Masukan query Topic" required><br>
+            <input type="number" id="max_results" name="max_results" value="50" placeholder="Maximal Article" required><br>
+            <input type="text" id="keywords" name="keywords" placeholder="Keywords (Masukan Beberapa Keywords)" required><br>
+            <input type="submit" value="Scrap">
+        </form>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progress-bar-fill">0%</div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Yusuf Ricky Carel
+    </footer>
+    <script>
+        document.getElementById('search-form').onsubmit = function(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressContainer = document.querySelector('.progress-container');
+            const query = formData.get('query').replace(/\s+/g, '_'); // Replacing spaces with underscores for filename
+
+            progressContainer.style.display = 'block';
+            progressBarFill.style.width = '0%';
+            progressBarFill.textContent = '0%';
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', form.action, true);
+            xhr.responseType = 'blob';
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    progressBarFill.style.width = percentComplete + '%';
+                    progressBarFill.textContent = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function(event) {
+                if (xhr.status === 200) {
+                    const blob = xhr.response;
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = query + '.xlsx';
+                    link.click();
+                } else {
+                    alert('An error occurred while processing your request.');
+                }
+            };
+
+            xhr.onerror = function() {
+                alert('An error occurred while processing your request.');
+            };
+
+            xhr.send(formData);
+        };
+    </script>
+</body>
+</html>
